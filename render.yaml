@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: ai-kyc-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: MONGODB_URL
+        sync: false   # Set this manually in Render dashboard
+      - key: DATABASE_NAME
+        value: kyc_db
+      - key: SECRET_KEY
+        generateValue: true   # Render auto-generates a secure value
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: OPENAI_API_KEY
+        sync: false   # Set this manually in Render dashboard
+      - key: CHROMA_PERSIST_DIR
+        value: ./chroma_db
+      - key: TESSERACT_CMD
+        value: /usr/bin/tesseract
+      - key: ALLOWED_ORIGINS
+        sync: false   # Set to your Vercel frontend URL, e.g: https://ai-kyc.vercel.app
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8000

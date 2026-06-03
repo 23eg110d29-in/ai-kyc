@@ -9,7 +9,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     OPENAI_API_KEY: str = "your_openai_api_key_here"
     CHROMA_PERSIST_DIR: str = "./chroma_db"
-    TESSERACT_CMD: str = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    # On Windows dev: set this to Tesseract path. On Render (Linux): /usr/bin/tesseract
+    TESSERACT_CMD: str = "/usr/bin/tesseract"
+    # Comma-separated list of allowed CORS origins
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     class Config:
         env_file = ".env"
