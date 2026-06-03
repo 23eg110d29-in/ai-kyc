@@ -8,10 +8,7 @@ pydantic-settings
 python-multipart
 langgraph
 langchain
-langchain-community
+langchain-core
 langchain-openai
-chromadb
-pytesseract
-Pillow
-pdf2image
 openai
+Pillow

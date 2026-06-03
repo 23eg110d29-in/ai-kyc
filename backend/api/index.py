@@ -2,22 +2,34 @@ import sys
 import os
 import types
 
-# On Vercel, the backend/ directory is deployed as root.
-# So /var/task/ = backend root, and /var/task/api/index.py = this file.
-# But main.py uses `from backend.core.X import ...` style imports.
-# We fix this by creating a virtual 'backend' package pointing to the root.
+# ──────────────────────────────────────────────────────────────
+# Vercel Python serverless entry point for AI KYC backend.
+#
+# On Vercel the *backend/* directory is the deployment root, so:
+#   /var/task/          ← backend root (what was backend/ locally)
+#   /var/task/api/index.py  ← this file
+#   /var/task/main.py
+#   /var/task/core/...
+#
+# The application code uses `from backend.X import …` throughout.
+# We create a virtual `backend` package that maps to /var/task so
+# all those imports resolve correctly without touching any source.
+# ──────────────────────────────────────────────────────────────
 
-backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# /var/task  (the backend root)
+_backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Create a virtual 'backend' package so all internal imports resolve correctly
-if 'backend' not in sys.modules:
-    backend_pkg = types.ModuleType('backend')
-    backend_pkg.__path__ = [backend_root]
-    backend_pkg.__package__ = 'backend'
-    sys.modules['backend'] = backend_pkg
+# Add backend root to sys.path so `import main` works
+if _backend_root not in sys.path:
+    sys.path.insert(0, _backend_root)
 
-# Also add backend_root to sys.path for direct module imports
-if backend_root not in sys.path:
-    sys.path.insert(0, backend_root)
+# Create a virtual `backend` package pointing at _backend_root
+if "backend" not in sys.modules:
+    _pkg = types.ModuleType("backend")
+    _pkg.__path__ = [_backend_root]
+    _pkg.__package__ = "backend"
+    _pkg.__spec__ = None
+    sys.modules["backend"] = _pkg
 
-from main import app
+# Now import the FastAPI app — all `from backend.X` imports will resolve
+from main import app  # noqa: E402
