@@ -13,3 +13,4 @@ langchain-openai
 openai
 Pillow
 email-validator
+bcrypt
