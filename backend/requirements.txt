@@ -3,7 +3,7 @@ uvicorn
 motor
 passlib[bcrypt]
 python-jose[cryptography]
-pydantic
+pydantic[email]
 pydantic-settings
 python-multipart
 langgraph
@@ -12,3 +12,4 @@ langchain-core
 langchain-openai
 openai
 Pillow
+email-validator
