@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+motor
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic
+pydantic-settings
+python-multipart
+langgraph
+langchain
+langchain-community
+langchain-openai
+chromadb
+pytesseract
+Pillow
+pdf2image
+openai
