@@ -106,7 +106,7 @@ async def mock_verification_pipeline(document_id: str, db):
         elif doc["file_path"].endswith(".png"):
             content_type = "image/png"
             
-        extracted_text = extract_text(doc["file_path"], content_type)
+        extracted_text = extract_text(doc["file_path"], content_type, doc["document_type"])
 
         fraud_flags = get_fraud_flags(doc["document_type"], extracted_text)
         if fraud_flags:
