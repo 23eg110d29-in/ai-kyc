@@ -55,6 +55,7 @@ const UserDashboard = () => {
       toast.success('Document uploaded and verification started!');
       setFile(null);
       fetchDocuments();
+      setTimeout(fetchDocuments, 3000);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Upload failed');
     } finally {
@@ -78,6 +79,14 @@ const UserDashboard = () => {
       case 'MANUAL_REVIEW': return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
       default: return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
     }
+  };
+
+  const getDocumentReason = (doc) => {
+    if (doc.extracted_data?.reason) return doc.extracted_data.reason;
+    if (doc.extracted_data?.fraud_flags?.length) {
+      return `Flags: ${doc.extracted_data.fraud_flags.join(', ')}`;
+    }
+    return null;
   };
 
   return (
@@ -170,7 +179,9 @@ const UserDashboard = () => {
             </div>
           ) : (
             <div className="grid gap-4">
-              {documents.map((doc) => (
+              {documents.map((doc) => {
+                const reason = getDocumentReason(doc);
+                return (
                 <div key={doc.id} className="glass-panel p-6 rounded-[1.5rem] flex flex-col sm:flex-row sm:items-center justify-between hover:-translate-y-1 transition-transform border-white/10 group cursor-default">
                   <div className="flex items-center gap-5 mb-4 sm:mb-0">
                     <div className="h-12 w-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-colors">
@@ -181,6 +192,16 @@ const UserDashboard = () => {
                       <p className="text-sm text-muted-foreground">
                         {format(new Date(doc.created_at), 'MMMM dd, yyyy • HH:mm')}
                       </p>
+                      {reason && (
+                        <p className={`text-sm mt-2 max-w-xl ${doc.status === 'REJECTED' ? 'text-rose-300' : 'text-amber-300'}`}>
+                          {reason}
+                        </p>
+                      )}
+                      {doc.confidence !== null && doc.confidence !== undefined && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Confidence: {Math.round(doc.confidence * 100)}%
+                        </p>
+                      )}
                     </div>
                   </div>
                   
@@ -189,7 +210,8 @@ const UserDashboard = () => {
                     {doc.status.replace('_', ' ')}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

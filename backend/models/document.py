@@ -22,6 +22,7 @@ class DocumentResponse(DocumentBase):
     user_id: str
     file_path: str
     extracted_data: Optional[Dict[str, Any]] = None
+    confidence: Optional[float] = None
     created_at: datetime
     updated_at: datetime
 

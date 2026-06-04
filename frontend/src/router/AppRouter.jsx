@@ -4,6 +4,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import UserDashboard from '../pages/UserDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
+import AuditLogsPage from '../pages/AuditLogsPage';
 import Layout from '../components/layout/Layout';
 
 function AppRouter() {
@@ -17,6 +18,7 @@ function AppRouter() {
       <Route element={<Layout />}>
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/logs" element={<AuditLogsPage />} />
       </Route>
     </Routes>
   );

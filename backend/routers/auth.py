@@ -5,6 +5,7 @@ from ..models.user import UserCreate, UserResponse, Token
 from ..core.security import get_password_hash, verify_password, create_access_token, get_current_user
 from ..core.database import get_db
 from ..core.config import get_settings
+from ..core.audit import log_action
 
 settings = get_settings()
 router = APIRouter()
@@ -21,6 +22,14 @@ async def register_user(user: UserCreate, db=Depends(get_db)):
     user_dict["disabled"] = False
     
     result = await db.users.insert_one(user_dict)
+    await log_action(
+        db,
+        "USER_REGISTERED",
+        f"User {user.email} registered with role {user.role}.",
+        user_id=str(result.inserted_id),
+        resource_type="user",
+        resource_id=str(result.inserted_id),
+    )
     
     # Fetch created user to return
     created_user = await db.users.find_one({"_id": result.inserted_id})
@@ -31,6 +40,12 @@ async def register_user(user: UserCreate, db=Depends(get_db)):
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db=Depends(get_db)):
     user = await db.users.find_one({"email": form_data.username})
     if not user or not verify_password(form_data.password, user["hashed_password"]):
+        await log_action(
+            db,
+            "LOGIN_FAILED",
+            f"Failed login attempt for {form_data.username}.",
+            resource_type="auth",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -40,6 +55,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db=Depends(get
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user["email"], "role": user["role"]}, expires_delta=access_token_expires
+    )
+    await log_action(
+        db,
+        "USER_LOGIN",
+        f"User {user['email']} logged in.",
+        user_id=str(user["_id"]),
+        resource_type="auth",
+        resource_id=str(user["_id"]),
     )
     return {"access_token": access_token, "token_type": "bearer"}
 

@@ -7,10 +7,20 @@ from bson import ObjectId
 from ..models.document import DocumentResponse
 from ..core.security import get_current_user
 from ..core.database import get_db
+from ..core.audit import log_action
 
 router = APIRouter()
-UPLOAD_DIR = "uploads"
+UPLOAD_DIR = os.getenv("UPLOAD_DIR") or ("/tmp/uploads" if os.getenv("VERCEL") else "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+def validate_file_signature(filename: str, header: bytes):
+    lower_name = filename.lower()
+    if lower_name.endswith((".jpg", ".jpeg")) and not header.startswith(b"\xff\xd8\xff"):
+        raise HTTPException(status_code=400, detail="Fake or corrupted document detected. Please upload a valid JPG/JPEG image.")
+    if lower_name.endswith(".png") and not header.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise HTTPException(status_code=400, detail="Fake or corrupted document detected. Please upload a valid PNG image.")
+    if lower_name.endswith(".pdf") and not header.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="Fake or corrupted document detected. Please upload a valid PDF file.")
 
 @router.post("/", response_model=DocumentResponse)
 async def upload_document(
@@ -21,6 +31,10 @@ async def upload_document(
 ):
     if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.pdf')):
         raise HTTPException(status_code=400, detail="Invalid file type. Only PNG, JPG, JPEG, and PDF are allowed.")
+
+    header = await file.read(16)
+    validate_file_signature(file.filename, header)
+    await file.seek(0)
     
     # Save file locally
     file_extension = file.filename.split('.')[-1]
@@ -41,6 +55,14 @@ async def upload_document(
     }
     
     result = await db.documents.insert_one(doc_dict)
+    await log_action(
+        db,
+        "DOCUMENT_UPLOADED",
+        f"{document_type} document uploaded.",
+        user_id=str(current_user["_id"]),
+        resource_type="document",
+        resource_id=str(result.inserted_id),
+    )
     
     created_doc = await db.documents.find_one({"_id": result.inserted_id})
     created_doc["id"] = str(created_doc["_id"])

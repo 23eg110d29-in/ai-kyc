@@ -43,3 +43,28 @@ app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
 @app.get("/")
 async def root():
     return {"message": "Welcome to AI KYC Backend API"}
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "api_version": "v1"
+    }
+
+@app.get("/api/v1")
+async def api_v1_root():
+    return {
+        "message": "AI KYC Backend API v1 is running",
+        "status": "healthy",
+        "docs": "/docs",
+        "health": "/api/v1/health"
+    }
+
+@app.get("/api/v1/health")
+async def api_v1_health_check():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "api_version": "v1"
+    }

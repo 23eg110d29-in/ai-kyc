@@ -13,4 +13,6 @@ langchain-openai
 openai
 Pillow
 email-validator
-bcrypt
+pytesseract
+pdf2image
+
